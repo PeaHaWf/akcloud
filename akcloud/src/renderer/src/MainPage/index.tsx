@@ -1,6 +1,7 @@
 import { Box } from '@mui/material'
 import Drawer from '../components/Drawer'
 import Files from './Files'
+
 const MainPage = () => {
   return (
     <Box sx={{ backgroundColor: '#04002c', height: '100vh', overflow: 'hidden' }}>

@@ -23,11 +23,12 @@ const DrawerItem: React.FC<DrawerItemProps> = ({ index, name }) => {
           cursor: 'pointer',
           '&:hover': {
             backgroundColor: '#455175'
-          }
+          },
+          alignItems: 'center'
         }}
       >
         {icons[index]}
-        <Typography sx={{ fontSize: 14, pl: 1 }}>{name}</Typography>
+        <Typography sx={{ fontSize: 14, pl: 2 }}>{name}</Typography>
       </Box>
     </Box>
   )

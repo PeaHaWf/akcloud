@@ -54,8 +54,8 @@ const File = () => {
         <MoreHoriz />
       </Box>
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-        <MenuItem onClick={handleClose}>数据备份</MenuItem>
         <MenuItem onClick={handleClose}>数据还原</MenuItem>
+        <MenuItem onClick={handleClose}>上传云端</MenuItem>
       </Menu>
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <img src={floderImg} alt="floder" width="100px" />
