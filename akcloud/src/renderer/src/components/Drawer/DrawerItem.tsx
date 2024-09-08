@@ -6,12 +6,13 @@ import { ReactElement } from 'react'
 interface DrawerItemProps {
   index: number
   name: string
-  onClick?: (index: number) => void
+  onClick?: () => void
+  isSelected?: boolean
 }
 
 const icons: ReactElement[] = [<Folder />, <AvTimer />, <CloudUpload />]
 
-const DrawerItem: React.FC<DrawerItemProps> = ({ index, name }) => {
+const DrawerItem: React.FC<DrawerItemProps> = ({ index, name, onClick, isSelected }) => {
   return (
     <Box sx={{ p: 1 }}>
       <Box
@@ -24,8 +25,10 @@ const DrawerItem: React.FC<DrawerItemProps> = ({ index, name }) => {
           '&:hover': {
             backgroundColor: '#455175'
           },
+          backgroundColor: isSelected ? '#2a3f73' : '#1f294a',
           alignItems: 'center'
         }}
+        onClick={onClick}
       >
         {icons[index]}
         <Typography sx={{ fontSize: 14, pl: 2 }}>{name}</Typography>

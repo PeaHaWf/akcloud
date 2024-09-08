@@ -1,4 +1,4 @@
-import { Box, Grid, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import File from '../components/File'
 import AddFile from '@renderer/components/AddFile'
 
