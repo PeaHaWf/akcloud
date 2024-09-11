@@ -2,8 +2,8 @@
 #include <iostream>
 
 int main() {
-    std::string sourceFile = "path/to/source/file.txt";
-    std::string backupFile = "path/to/backup/file.txt";
+    std::string sourceFile = "./test.txt";
+    std::string backupFile = "./backupFiles/back";
 
     // 备份文件
     if (FileBackupRestore::backupFile(sourceFile, backupFile)) {
@@ -12,12 +12,12 @@ int main() {
         std::cout << "File backup failed." << std::endl;
     }
 
-    // 还原文件
-    if (FileBackupRestore::restoreFile(backupFile, sourceFile)) {
-        std::cout << "File restored successfully." << std::endl;
-    } else {
-        std::cout << "File restore failed." << std::endl;
-    }
+    // // 还原文件
+    // if (FileBackupRestore::restoreFile(backupFile, sourceFile)) {
+    //     std::cout << "File restored successfully." << std::endl;
+    // } else {
+    //     std::cout << "File restore failed." << std::endl;
+    // }
 
     return 0;
 }
