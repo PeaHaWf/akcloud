@@ -1,22 +1,31 @@
 #include "file_backup_restore.h"
 #include <iostream>
-#include <filesystem>
+#include <fstream>
+
 bool FileBackupRestore::backupFile(const std::string &sourceFilePath, const std::string &backupFilePath) {
-    try {
-        std::filesystem::copy(sourceFilePath, backupFilePath, std::filesystem::copy_options::overwrite_existing);
-        return true;
-    } catch (const std::exception &e) {
-        std::cerr << e.what() << '\n';
+    std::ifstream src(sourceFilePath, std::ios::binary);
+    std::ofstream dst(backupFilePath, std::ios::binary);
+
+    if (!src.is_open() || !dst.is_open()) {
+        std::cerr << "Failed to open source or destination file." << std::endl;
         return false;
     }
+
+    dst << src.rdbuf();
+
+    return true;
 }
 
 bool FileBackupRestore::restoreFile(const std::string &backupFilePath, const std::string &originalFilePath) {
-    try {
-        std::filesystem::copy(backupFilePath, originalFilePath, std::filesystem::copy_options::overwrite_existing);
-        return true;
-    } catch (const std::exception &e) {
-        std::cerr << e.what() << '\n';
+    std::ifstream src(backupFilePath, std::ios::binary);
+    std::ofstream dst(originalFilePath, std::ios::binary);
+
+    if (!src.is_open() || !dst.is_open()) {
+        std::cerr << "Failed to open backup or original file." << std::endl;
         return false;
     }
+
+    dst << src.rdbuf();
+
+    return true;
 }
