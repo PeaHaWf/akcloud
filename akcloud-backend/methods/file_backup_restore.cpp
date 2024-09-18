@@ -1,31 +1,45 @@
 #include "file_backup_restore.h"
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 
-bool FileBackupRestore::backupFile(const std::string &sourceFilePath, const std::string &backupFilePath) {
-    std::ifstream src(sourceFilePath, std::ios::binary);
-    std::ofstream dst(backupFilePath, std::ios::binary);
-
-    if (!src.is_open() || !dst.is_open()) {
-        std::cerr << "Failed to open source or destination file." << std::endl;
-        return false;
-    }
-
+void copyFile_(const std::filesystem::path &source, const std::filesystem::path &destination) {
+    std::ifstream src(source, std::ios::binary);
+    std::ofstream dst(destination, std::ios::binary);
     dst << src.rdbuf();
-
-    return true;
 }
 
-bool FileBackupRestore::restoreFile(const std::string &backupFilePath, const std::string &originalFilePath) {
-    std::ifstream src(backupFilePath, std::ios::binary);
-    std::ofstream dst(originalFilePath, std::ios::binary);
+bool FileBackupRestore::copyFile(const std::string &sourcePath, const std::string &backupPath) {
+    std::filesystem::path sourcePathObj(sourcePath);
+    std::filesystem::path backupPathObj(backupPath);
 
-    if (!src.is_open() || !dst.is_open()) {
-        std::cerr << "Failed to open backup or original file." << std::endl;
+    // File not found
+    if (!std::filesystem::exists(sourcePathObj)) {
+        std::cerr << "Source file does not exist." << std::endl;
         return false;
     }
 
-    dst << src.rdbuf();
+    // Create backup directory if not exist
+    if (!std::filesystem::exists(backupPathObj.parent_path())) {
+        std::filesystem::create_directories(backupPathObj.parent_path());
+    }
+
+    // Backup Directory
+    if (std::filesystem::is_directory(sourcePathObj)) {
+        for (const auto &entry : std::filesystem::recursive_directory_iterator(sourcePathObj)) {
+            std::filesystem::path relativePath = std::filesystem::relative(entry.path(), sourcePathObj); // relative path from sourcePathObj
+            std::filesystem::path backupPathForEntry = backupPathObj / relativePath;                     // path in backupPath
+            if (std::filesystem::is_directory(entry.path())) {
+                std::filesystem::create_directories(backupPathForEntry);
+            } else {
+                copyFile_(entry.path(), backupPathForEntry);
+            }
+        }
+    } // Backup File
+    else {
+        std::filesystem::path backupFilePath = backupPathObj / sourcePathObj.filename();
+        copyFile_(sourcePathObj, backupFilePath);
+    }
 
     return true;
 }

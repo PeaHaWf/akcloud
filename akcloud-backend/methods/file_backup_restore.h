@@ -7,8 +7,7 @@
 
 class FileBackupRestore {
 public:
-    static bool backupFile(const std::string &sourceFilePath, const std::string &backupFilePath);
-    static bool restoreFile(const std::string &backupFilePath, const std::string &originalFilePath);
+    static bool copyFile(const std::string &sourcePath, const std::string &backupPath);
 };
 
 #endif // FILE_BACKUP_RESTORE_H
