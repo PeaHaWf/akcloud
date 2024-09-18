@@ -6,8 +6,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-class huffmanNode
-{
+class huffmanNode {
 public:
     huffmanNode(int nodevalue);
     huffmanNode(int nodevalue, char cur);
@@ -17,8 +16,7 @@ public:
     int val;
     char c;
 };
-class Composer
-{
+class Composer {
 public:
     // 构造函数和析构函数
     Composer(const std::string &filename);
@@ -29,9 +27,11 @@ public:
     huffmanNode *create_huffmanTree();
     void generateHuffmanCode(huffmanNode *root);
     void composerOutput(std::string outputFileName);
+    void writeHead(std::ostream &outfile, std::string filename);
 
 private:
     std::ifstream infile; // 文件流
+    std::string originFileName;
     huffmanNode *root;
     //源文件内容
     std::vector<std::string> lines;

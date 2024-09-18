@@ -23,6 +23,7 @@ struct compare {
 // 构造函数，尝试打开文件
 Composer::Composer(const std::string &filename) {
     infile.open(filename);
+    originFileName = filename;
     if (!infile) {
         std::cerr << "无法打开文件: " << filename << std::endl;
     }
@@ -103,7 +104,9 @@ void Composer::generateHuffmanCode(huffmanNode *root) {
     generateHuffmanCode(root->right);
 }
 void Composer::composerOutput(std::string outputFileName) {
+    
     std::ofstream outfile(outputFileName); // 创建输出文件流
+    writeHead(outfile,outputFileName);
     unsigned char ch = 0;
     unsigned char bitcount = 0;
     if (!outfile) {
@@ -127,5 +130,44 @@ void Composer::composerOutput(std::string outputFileName) {
             }
         }
     }
+    //最后没有完整输出一个字节，特判
+    if (bitcount > 0 && bitcount < 8) {
+        ch <<= (8 - bitcount);
+        outfile << ch;
+    }
     outfile.close();
+}
+void Composer::writeHead(std::ostream &outfile,std::string filename) {
+    //读取文件后缀名
+    size_t pos = originFileName.find_last_of('.');
+    std::string postFix = "";
+    // 检查是否找到了 '.'，并且 '.' 不是最后一个字符
+    if (pos != std::string::npos && pos != originFileName.length() - 1) {
+        // 提取从 '.' 之后的子串（即文件后缀）
+        postFix = originFileName.substr(pos + 1);
+        //std::cout << "文件后缀名是: " << extension << std::endl;
+    } else {
+        //std::cout << "未找到有效的文件后缀名" << std::endl;
+    }
+
+   
+    postFix += '\n';
+    
+    outfile << postFix;
+    std::string info = "";
+    size_t lineCnt = 0;
+    //统计各字符出现个数，形成如A:1   B:3类似的数据
+    for (std::pair<char, int> p : charCount) {
+        info += p.first;
+        info += ':';
+        info += std::to_string(p.second);
+        info += '\n';
+        lineCnt++;
+    }
+    //文件总行数
+    std::string totalLine = std::to_string(lineCnt);
+    totalLine += '\n';
+
+    outfile << totalLine << info;
+   
 }
