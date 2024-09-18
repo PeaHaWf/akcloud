@@ -1,7 +1,11 @@
-#include "composer.h"
-#include "decomposer.h"
+/*
+解压缩测试文件
+*/
+
+#include "methods/composer.h"
+#include "methods/decomposer.h"
 int main() {
-    //压缩路径下文件
+    //压缩指定路径下文件
     Composer composer("D:\\mav\\tt.txt");
     //读取文件内容
     composer.readAllLines();
