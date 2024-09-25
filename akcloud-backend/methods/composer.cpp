@@ -21,12 +21,13 @@ struct compare {
     }
 };
 // 构造函数，尝试打开文件
-Composer::Composer(const std::string &filename) {
+Composer::Composer(const std::string &filename, const std::string &outputFilename) {
     infile.open(filename);
     originFileName = filename;
     if (!infile) {
         std::cerr << "无法打开文件: " << filename << std::endl;
     }
+    this->outputFilename = outputFilename;
 }
 
 Composer::~Composer() {
@@ -104,9 +105,8 @@ void Composer::generateHuffmanCode(huffmanNode *root) {
     generateHuffmanCode(root->right);
 }
 void Composer::composerOutput(std::string outputFileName) {
-    
     std::ofstream outfile(outputFileName); // 创建输出文件流
-    writeHead(outfile,outputFileName);
+    writeHead(outfile, outputFileName);
     unsigned char ch = 0;
     unsigned char bitcount = 0;
     if (!outfile) {
@@ -137,7 +137,7 @@ void Composer::composerOutput(std::string outputFileName) {
     }
     outfile.close();
 }
-void Composer::writeHead(std::ostream &outfile,std::string filename) {
+void Composer::writeHead(std::ostream &outfile, std::string filename) {
     //读取文件后缀名
     size_t pos = originFileName.find_last_of('.');
     std::string postFix = "";
@@ -145,14 +145,13 @@ void Composer::writeHead(std::ostream &outfile,std::string filename) {
     if (pos != std::string::npos && pos != originFileName.length() - 1) {
         // 提取从 '.' 之后的子串（即文件后缀）
         postFix = originFileName.substr(pos + 1);
-        //std::cout << "文件后缀名是: " << extension << std::endl;
+        // std::cout << "文件后缀名是: " << extension << std::endl;
     } else {
-        //std::cout << "未找到有效的文件后缀名" << std::endl;
+        // std::cout << "未找到有效的文件后缀名" << std::endl;
     }
 
-   
     postFix += '\n';
-    
+
     outfile << postFix;
     std::string info = "";
     size_t lineCnt = 0;
@@ -169,5 +168,15 @@ void Composer::writeHead(std::ostream &outfile,std::string filename) {
     totalLine += '\n';
 
     outfile << totalLine << info;
-   
+}
+
+void Composer::startCompose() {
+    //读取文件内容
+    readAllLines();
+    //构建哈夫曼树
+    huffmanNode *root = create_huffmanTree();
+    //遍历树，获得哈夫曼编码
+    generateHuffmanCode(root);
+    //替换源文件内容，压缩至指定文件
+    composerOutput(this->outputFilename);
 }

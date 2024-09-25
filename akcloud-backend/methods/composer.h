@@ -19,7 +19,7 @@ public:
 class Composer {
 public:
     // 构造函数和析构函数
-    Composer(const std::string &filename);
+    Composer(const std::string &filename, const std::string &outputFilename);
     ~Composer();
 
     // 读取文件所有行并返回一个字符串的 vector
@@ -28,10 +28,13 @@ public:
     void generateHuffmanCode(huffmanNode *root);
     void composerOutput(std::string outputFileName);
     void writeHead(std::ostream &outfile, std::string filename);
+    void startCompose();
 
 private:
     std::ifstream infile; // 文件流
+
     std::string originFileName;
+    std::string outputFilename;
     huffmanNode *root;
     //源文件内容
     std::vector<std::string> lines;

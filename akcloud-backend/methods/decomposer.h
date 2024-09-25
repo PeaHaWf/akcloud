@@ -19,16 +19,18 @@ public:
 class DeComposer {
 public:
     // 构造函数和析构函数
-    DeComposer(const std::string &filename);
+    DeComposer(const std::string &filename, const std::string &outputFilename);
     ~DeComposer();
 
     void readFile();
     huffmanTreeNode *create_huffmanTree();
     void decompose(std::string outFilename);
+    void startDecompose();
 
 private:
     std::ifstream infile; // 文件流
     std::string postFix;
+    std::string outputFilename;
     huffmanTreeNode *root;
     //源文件内容
     std::vector<std::string> lines;
@@ -38,4 +40,4 @@ private:
     std::unordered_map<char, std::string> strCode;
 };
 
-#endif //DECOMPOSER_H
+#endif // DECOMPOSER_H

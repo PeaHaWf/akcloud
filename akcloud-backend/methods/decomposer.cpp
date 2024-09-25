@@ -20,11 +20,12 @@ struct compare {
         return a->val > b->val; // 定义最小堆*
     }
 };
-DeComposer::DeComposer(const std::string &filename) {
+DeComposer::DeComposer(const std::string &filename, const std::string &outputFilename) {
     infile.open(filename);
     if (!infile) {
         std::cerr << "无法打开文件: " << filename << std::endl;
     }
+    this->outputFilename = outputFilename;
 };
 DeComposer::~DeComposer() {
     if (infile.is_open()) {
@@ -33,7 +34,7 @@ DeComposer::~DeComposer() {
 }
 void DeComposer::readFile() {
     //读取文件后缀名和频次行数信息
-    
+
     std::getline(infile, postFix);
     std::string strLineCnt;
     std::getline(infile, strLineCnt);
@@ -68,7 +69,7 @@ huffmanTreeNode *DeComposer::create_huffmanTree() {
     return root;
 }
 void DeComposer::decompose(std::string outFilename) {
-    outFilename += '.'+postFix;
+    outFilename += '.' + postFix;
     std::ofstream fOut(outFilename);
     huffmanTreeNode *cur = root;
     unsigned char bitcount = 0;
@@ -99,4 +100,12 @@ void DeComposer::decompose(std::string outFilename) {
             curch <<= 1;
         }
     }
+}
+void DeComposer::startDecompose() {
+    //读文件内容
+    readFile();
+    //重建哈夫曼树
+    create_huffmanTree();
+    //解压至outputFilename.xxx
+    decompose(outputFilename);
 }
