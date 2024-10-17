@@ -6,15 +6,16 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
+#include<map>
 class huffmanTreeNode {
 public:
     huffmanTreeNode(int nodevalue);
-    huffmanTreeNode(int nodevalue, char cur);
+    huffmanTreeNode(int nodevalue, unsigned char cur);
     huffmanTreeNode *left;
     huffmanTreeNode *right;
     huffmanTreeNode *parent;
     int val;
-    char c;
+    unsigned char c;
 };
 class DeComposer {
 public:
@@ -35,9 +36,9 @@ private:
     //源文件内容
     std::vector<std::string> lines;
     //字符数量统计
-    std::unordered_map<unsigned char, int> charCount;
+    std::map<unsigned char, int> charCount;
     // code
-    std::unordered_map<char, std::string> strCode;
+    std::map<unsigned char, std::string> strCode;
 };
 
 #endif // DECOMPOSER_H

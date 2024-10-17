@@ -8,7 +8,7 @@ huffmanNode::huffmanNode(int nodevalue) {
     right = nullptr;
     parent = nullptr;
 }
-huffmanNode::huffmanNode(int nodevalue, char cur) {
+huffmanNode::huffmanNode(int nodevalue, unsigned char cur) {
     val = nodevalue;
     left = nullptr;
     right = nullptr;
@@ -22,7 +22,7 @@ struct compare {
 };
 // 构造函数，尝试打开文件
 Composer::Composer(const std::string &filename, const std::string &outputFilename) {
-    infile.open(filename);
+    infile.open(filename,std::ios::binary);
     originFileName = filename;
     if (!infile) {
         std::cerr << "无法打开文件: " << filename << std::endl;
@@ -36,9 +36,11 @@ Composer::~Composer() {
     }
 }
 //读取文件，统计每个字符数量
-std::vector<std::string> Composer::readAllLines() {
-    std::vector<std::string> clines;
+std::vector<unsigned char> Composer::readAllLines() {
+    /* std::vector<std::string> clines;
     std::string line;
+
+
     while (std::getline(infile, line)) {
         clines.push_back(line); // 将每一行内容添加到 vector 中
     }
@@ -52,13 +54,39 @@ std::vector<std::string> Composer::readAllLines() {
                 charCount[c]++;
         }
     }
+    charCount['\n'] = clines.size() - 1;
+    return clines;*/
+    
+    infile.seekg(0, std::ios::end);
+    std::streamsize size = infile.tellg();
+    infile.seekg(0, std::ios::beg);
+    std::vector<unsigned char> clines(size);
+    infile.read(reinterpret_cast<char *> (clines.data()), size);
+
+    //if (!infile.eof()) {
+       // std::cerr << "Error reading the file!" << std::endl;
+        //return {};
+    //}
+    //去掉'\0'
+    //clines.pop_back();
+    //clines.erase(std::remove(clines.begin(), clines.end(), '\r'), clines.end());
+    for (unsigned char c : clines) {
+        std::cout << c << ' ' << std::endl;
+        if (!charCount.count(c))
+            charCount[c] = 1;
+        else
+            charCount[c]++;
+    }
+    chars = clines;
     return clines;
-}
+} 
+
+
 //构建哈夫曼树，返回树根
 huffmanNode *Composer::create_huffmanTree() {
     std::priority_queue<huffmanNode *, std::vector<huffmanNode *>, compare> pq;
     //创建节点森林
-    for (std::pair<char, int> p : charCount) {
+    for (std::pair<unsigned char, int> p : charCount) {
         pq.push(new huffmanNode(p.second, p.first));
     }
     //构建
@@ -86,7 +114,7 @@ void Composer::generateHuffmanCode(huffmanNode *root) {
     if (root->left == nullptr && root->right == nullptr) {
         huffmanNode *cur = root;
         huffmanNode *parent = root->parent;
-        char curchar = root->c;
+        unsigned char curchar = root->c;
         while (parent) {
             if (cur == parent->left) {
                 code += '0';
@@ -105,7 +133,7 @@ void Composer::generateHuffmanCode(huffmanNode *root) {
     generateHuffmanCode(root->right);
 }
 void Composer::composerOutput(std::string outputFileName) {
-    std::ofstream outfile(outputFileName); // 创建输出文件流
+    std::ofstream outfile(outputFileName,std::ios::binary); // 创建输出文件流
     writeHead(outfile, outputFileName);
     unsigned char ch = 0;
     unsigned char bitcount = 0;
@@ -113,23 +141,23 @@ void Composer::composerOutput(std::string outputFileName) {
         std::cerr << "无法创建输出文件: " << outputFileName << std::endl;
         return;
     }
-
-    for (std::string line : lines) {
-        for (char c : line) {
-            std::string code = strCode[c];
-            for (int i = 0; i < code.size(); i++) {
-                ch <<= 1;
-                if (code[i] == '1') {
-                    ch |= 1;
-                }
-                bitcount++;
-                if (bitcount == 8) {
-                    bitcount = 0;
-                    outfile << ch;
-                }
+    
+        
+    for (unsigned char c : chars) {
+        std::string code = strCode[c];
+        for (int i = 0; i < code.size(); i++) {
+            ch <<= 1;
+            if (code[i] == '1') {
+                ch |= 1;
+            }
+            bitcount++;
+            if (bitcount == 8) {
+                bitcount = 0;
+                outfile << ch;
             }
         }
     }
+    
     //最后没有完整输出一个字节，特判
     if (bitcount > 0 && bitcount < 8) {
         ch <<= (8 - bitcount);
@@ -156,8 +184,14 @@ void Composer::writeHead(std::ostream &outfile, std::string filename) {
     std::string info = "";
     size_t lineCnt = 0;
     //统计各字符出现个数，形成如A:1   B:3类似的数据
-    for (std::pair<char, int> p : charCount) {
-        info += p.first;
+    for (std::pair<unsigned char, int> p : charCount) {
+        if (p.first != '\n' && p.first !='\r')
+            info += p.first;
+        else if (p.first == '\n') {
+            info += "nn";
+        } else {
+            info += "rr";
+        }
         info += ':';
         info += std::to_string(p.second);
         info += '\n';
@@ -179,4 +213,86 @@ void Composer::startCompose() {
     generateHuffmanCode(root);
     //替换源文件内容，压缩至指定文件
     composerOutput(this->outputFilename);
+}
+//判断滑动窗口和缓冲区中的最长匹配
+int Composer::match(std::string window, std::string buffer, int *offset, unsigned char *next) {
+    int matched_length, longest, i, j, k;
+
+    *offset = 0;
+    longest = 0;
+    *next = buffer[0];
+    for (k = 0; k < window_size; k++) {
+        i = k;
+        j = 0;
+        matched_length = 0;
+
+        /* 确定滑动窗口中k个偏移量匹配的符号数 */
+        while (i < window_size && j < buffer_size - 1) {
+            if (window[i] != buffer[j])
+                break;
+
+            matched_length++;
+            i++;
+            j++;
+        }
+
+        /* 跟踪最佳匹配的偏移、长度和下一个符号 */
+        if (matched_length > longest) {
+            *offset = k;
+            longest = matched_length;
+            *next = buffer[j];
+        }
+    }
+    return longest;
+}
+
+void Composer::compress_lz77() {
+    std::string original;
+    std::string compressed, window, buffer;
+    int length = 0;
+    int cur_line = 0;
+    int size = 0;
+    int tbits = 0;
+    int line_cnt = lines.size();
+    for (auto line : lines) {
+        cur_line++;
+        original += line;
+        size += line.size();
+        if (cur_line != line_cnt) {
+            original += '\n';
+            size++;
+        }
+    }
+    int ipos = 0;
+    for (int i = 0; i < buffer_size && ipos < size; i++) {
+        buffer[i] = original[ipos];
+        ipos++;
+    }
+    int opos = sizeof(int) * 8;
+    int remaining = size;
+    unsigned char next;
+    int offset;
+    // mark
+    int token = 0;
+    while (remaining > 0) {
+        if (length = match(window, buffer, &offset, &next) != 0) {
+            token = 0x00000001 << (token_bit - 1);
+
+            /* 设置在滑动窗口找到匹配的偏移量 */
+            token = token | (offset << (token_bit - 1 - window_bit));
+
+            /* 设置匹配串的长度 */
+            token = token | (length << (token_bit - 1 - window_bit - buffer_bit));
+
+            /* 设置前向缓冲区中匹配串后面紧邻的字符 */
+            token = token | next;
+
+            /* 设置标记的位数 */
+            tbits = token_bit;
+        } else {
+            token = 0x00000000;
+            token |= next;
+            tbits = token_bit;
+        }
+    }
 }
