@@ -2,6 +2,8 @@
 #include <queue>
 #include <Uchar.h>
 #include <algorithm>
+#include<stdio.h>
+
 huffmanNode::huffmanNode(int nodevalue) {
     val = nodevalue;
     left = nullptr;
@@ -215,7 +217,7 @@ void Composer::startCompose() {
     composerOutput(this->outputFilename);
 }
 //判断滑动窗口和缓冲区中的最长匹配
-int Composer::match(std::string window, std::string buffer, int *offset, unsigned char *next) {
+int Composer::match(std::string &window, std::string &buffer, int *offset, unsigned char *next) {
     int matched_length, longest, i, j, k;
 
     *offset = 0;
@@ -246,53 +248,105 @@ int Composer::match(std::string window, std::string buffer, int *offset, unsigne
     return longest;
 }
 
-void Composer::compress_lz77() {
-    std::string original;
+int Composer::compress_lz77() {
+    //std::string original;
     std::string compressed, window, buffer;
     int length = 0;
     int cur_line = 0;
-    int size = 0;
+    readAllLines();
+    int size = chars.size();
     int tbits = 0;
-    int line_cnt = lines.size();
-    for (auto line : lines) {
-        cur_line++;
-        original += line;
-        size += line.size();
-        if (cur_line != line_cnt) {
-            original += '\n';
-            size++;
-        }
+    std::ofstream fOut(outputFilename, std::ios::binary);
+    std::string postfix;
+    size_t pos = originFileName.find_last_of('.');
+    std::string postFix = "";
+    // 检查是否找到了 '.'，并且 '.' 不是最后一个字符
+    if (pos != std::string::npos && pos != originFileName.length() - 1) {
+        // 提取从 '.' 之后的子串（即文件后缀）
+        postFix = originFileName.substr(pos + 1);
+        // std::cout << "文件后缀名是: " << extension << std::endl;
     }
+    else {
+        // std::cout << "未找到有效的文件后缀名" << std::endl;
+    }
+
+    postFix += '\n';
+    fOut << postFix;
+    fOut << size << '\n';
     int ipos = 0;
+    //预载缓冲区
     for (int i = 0; i < buffer_size && ipos < size; i++) {
-        buffer[i] = original[ipos];
+        buffer += chars[ipos];
         ipos++;
     }
+    window.resize(window_size);
+    //根据头部信息大小设置opos,假设是32位
     int opos = sizeof(int) * 8;
     int remaining = size;
     unsigned char next;
     int offset;
     // mark
     int token = 0;
+    unsigned char ch = 0;
+    int bitcount = 0;
     while (remaining > 0) {
-        if (length = match(window, buffer, &offset, &next) != 0) {
+        if ((length = match(window, buffer, &offset, &next)) != 0) {
             token = 0x00000001 << (token_bit - 1);
 
-            /* 设置在滑动窗口找到匹配的偏移量 */
+            // 设置在滑动窗口找到匹配的偏移量 
             token = token | (offset << (token_bit - 1 - window_bit));
 
-            /* 设置匹配串的长度 */
+            // 设置匹配串的长度 
             token = token | (length << (token_bit - 1 - window_bit - buffer_bit));
 
-            /* 设置前向缓冲区中匹配串后面紧邻的字符 */
+            // 设置前向缓冲区中匹配串后面紧邻的字符 
             token = token | next;
-
-            /* 设置标记的位数 */
+            
             tbits = token_bit;
         } else {
             token = 0x00000000;
             token |= next;
-            tbits = token_bit;
+            tbits = unfound_token_bit;
         }
+        //将token写入压缩文件
+        for (int i = 0; i < tbits; i++) {
+            ch <<= 1;
+            int bit = (token >> (tbits - i - 1)) & 0x1;
+            if (bit) {
+                ch |= bit;
+            }
+            bitcount++;
+            if (bitcount==8) {
+                fOut << ch;
+                bitcount = 0;
+            }
+            opos++;
+            
+        }
+        length++;
+        //移动窗口和缓冲区
+        
+        window += buffer.substr(0, length);
+        int cur = ipos;
+        for (int i = ipos; i < cur + length && ipos < size; i++) {
+            buffer += chars[i];
+            ipos++;
+        }
+        buffer.erase(buffer.begin(), buffer.begin() + length);
+        window.erase(window.begin(), window.begin() + length);
+        while (buffer.size() < buffer_size) {
+            buffer.resize(buffer_size, '\0');
+        }
+        
+        remaining -= length;
     }
+
+    //token = htonl(token);
+    if (bitcount > 0 && bitcount < 8) {
+        ch <<= (8 - bitcount);
+        fOut << ch;
+    }
+    fOut.close();
+
+    return ((opos - 1) / 8) + 1;
 }

@@ -32,8 +32,8 @@ public:
     void startCompose();
 
     // lz77压缩
-    void compress_lz77();
-    int match(std::string window, std::string buffer, int *offset, unsigned char *next);
+    int compress_lz77();
+    int match(std::string &window, std::string &buffer, int *offset, unsigned char *next);
 
 private:
     std::ifstream infile; // 文件流
@@ -50,13 +50,13 @@ private:
     std::map<unsigned char, std::string> strCode;
 
     // lz77
-    int window_size = 4096;
-    int buffer_size = 32;
-    int window_bit = 12;
-    int buffer_bit = 5;
+    int window_size = 8;
+    int buffer_size = 4;
+    int window_bit = 3;
+    int buffer_bit = 2;
     int next_char_bit = 8;
     //找到匹配串时的token,26位
-    int token_bit = 26;
+    int token_bit = 14;
     //未找到匹配串，9位
     int unfound_token_bit = 9;
 };
