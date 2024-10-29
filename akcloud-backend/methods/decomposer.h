@@ -48,13 +48,13 @@ private:
     int bufferBits=0;
     unsigned char readBuffer;
     //相关令牌
-    int window_size = 8;
-    int buffer_size = 4;
-    int window_bit = 3;
-    int buffer_bit = 2;
+    int window_size = 4096;
+    int buffer_size = 32;
+    int window_bit = 12;
+    int buffer_bit = 5;
     int next_char_bit = 8;
     //找到匹配串时的token,26位
-    int token_bit = 14;
+    int token_bit = 26;
     //未找到匹配串，9位
     int unfound_token_bit = 9;
 };
