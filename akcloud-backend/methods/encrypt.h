@@ -1,7 +1,6 @@
 #ifndef ENCODER_H
 #define ENCODER_H
-#pragma comment(lib, "libssl.lib")
-#pragma comment(lib, "libcrypto.lib")
+
 #include <openssl/evp.h>
 #include <openssl/aes.h>
 #include <openssl/rand.h>

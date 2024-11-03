@@ -1,5 +1,7 @@
 #include "./methods/encrypt.h"
 #include <iostream>
+#pragma comment(lib, "libcrypto.lib")
+#pragma comment(lib, "libssl.lib")
 
 int main() {
     // 密钥和初始化向量，长度应符合 AES-256 要求
@@ -16,18 +18,18 @@ int main() {
     };
 
     // 待加密文件名和输出文件名
-    std::string inputFile = "plaintext.txt";
+    std::string inputFile = "D:\\mav\\plaintext.txt";
     std::string encryptedFile = "ciphertext.bin";
     std::string decryptedFile = "decrypted.txt";
-
-    // 创建加密对象
+    //std::ifstream ff("D:\\mav\\plaintext.txt");
+    
     AESEncrypt aesEncrypt;
 
     // 进行加密操作
     if (aesEncrypt.encrypt(inputFile, encryptedFile, key, ivec)) {
         std::cout << "加密成功，输出文件: " << encryptedFile << std::endl;
     } else {
-        std::cerr << "加密失败！" << std::endl;
+        //std::cerr << "加密失败！" << std::endl;
         return 1;
     }
 
@@ -35,7 +37,7 @@ int main() {
     if (aesEncrypt.decrypt(encryptedFile, decryptedFile, key, ivec)) {
         std::cout << "解密成功，输出文件: " << decryptedFile << std::endl;
     } else {
-        std::cerr << "解密失败！" << std::endl;
+        //std::cerr << "解密失败！" << std::endl;
         return 1;
     }
 
