@@ -1,6 +1,6 @@
 #include "decomposer.h"
 #include <queue>
-#include <Uchar.h>
+#include <uchar.h>
 #include <algorithm>
 #include <cstring>
 huffmanTreeNode::huffmanTreeNode(int nodevalue) {

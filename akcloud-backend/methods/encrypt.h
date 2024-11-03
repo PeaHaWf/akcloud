@@ -13,8 +13,8 @@ class AESEncrypt {
 public:
     AESEncrypt();
     ~AESEncrypt();
-    bool encrypt(const std::string &in, std::string &out, const unsigned char *key, const unsigned char *ivec, const EVP_CIPHER *ciper);
-    bool decrypt(const std::string &in, std::string &out, const unsigned char *key, const unsigned char *ivec, const EVP_CIPHER *ciper);
+    bool encrypt(const std::string &in, std::string &out, const unsigned char *key, const unsigned char *ivec);
+    bool decrypt(const std::string &in, std::string &out, const unsigned char *key, const unsigned char *ivec);
 
 private:
     EVP_CIPHER_CTX *ctx;

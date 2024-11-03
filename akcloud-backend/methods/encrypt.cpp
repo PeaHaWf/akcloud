@@ -12,13 +12,18 @@ AESEncrypt::~AESEncrypt() {
     EVP_CIPHER_CTX_cleanup(ctx1);
     EVP_CIPHER_CTX_free(ctx1);
 }
-bool AESEncrypt::encrypt(const std::string &in, std::string &out, const unsigned char *key, const unsigned char *ivec, const EVP_CIPHER *ciper) {
+bool AESEncrypt::encrypt(const std::string &in, std::string &out, const unsigned char *key, const unsigned char *ivec) {
     bool ret = 0;
     std::ifstream fIn(in, std::ios::in | std::ios::binary);
     std::ofstream fOut(out, std::ios::out | std::ios::binary);
-    uint64_t inputFileLen = fIn.tellg();
+    
     EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, ivec);
-    fIn.seekg(0, std::ios_base::beg);
+    
+    fIn.seekg(0, std::ios::end);
+    uint64_t inputFileLen = fIn.tellg();
+    fIn.seekg(0, std::ios::beg);
+
+
     char readBuf[8192] = {0x00};
 
     uint8_t writeBuf[8192 + 32] = {0x00};
@@ -50,13 +55,16 @@ bool AESEncrypt::encrypt(const std::string &in, std::string &out, const unsigned
     ret = 1;
     return ret;
 }
-bool AESEncrypt::decrypt(const std::string &in, std::string &out, const unsigned char *key, const unsigned char *ivec, const EVP_CIPHER *ciper) {
+bool AESEncrypt::decrypt(const std::string &in, std::string &out, const unsigned char *key, const unsigned char *ivec) {
     std::ifstream fIn(in, std::ios::in | std::ios::binary);
 
     std::ofstream fOut(out, std::ios::out | std::ios::binary);
-    int rr = EVP_DecryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, ivec);
+    int rr = EVP_DecryptInit_ex(ctx1, EVP_aes_256_cbc(), NULL, key, ivec);
+
+    fIn.seekg(0, std::ios::end);
     uint64_t inputFileLen = fIn.tellg();
-    fIn.seekg(0, std::ios_base::beg);
+    fIn.seekg(0, std::ios::beg);
+
     char readBuf[8192] = {0x00};
 
     uint8_t writeBuf[8192 + 32] = {0x00};
@@ -70,13 +78,13 @@ bool AESEncrypt::decrypt(const std::string &in, std::string &out, const unsigned
         Total += curRead;
         int toEnBufLen = 0;
         int curEnLen = 0;
-        if (!EVP_DecryptUpdate(ctx, writeBuf, &toEnBufLen, reinterpret_cast<const unsigned char *>(readBuf), curRead)) {
+        if (!EVP_DecryptUpdate(ctx1, writeBuf, &toEnBufLen, reinterpret_cast<const unsigned char *>(readBuf), curRead)) {
             printf("EVP_DecryptUpdate failed!  err:%s  \n", ERR_error_string(ERR_get_error(), NULL));
             return false;
         }
 
         if (curRead < sizeof(readBuf)) {
-            if (!EVP_DecryptFinal(ctx, writeBuf + toEnBufLen, &curEnLen)) {
+            if (!EVP_DecryptFinal(ctx1, writeBuf + toEnBufLen, &curEnLen)) {
                 printf("EVP_DecryptFinal failed!  err:%s  \n", ERR_error_string(ERR_get_error(), NULL));
                 return false;
             }

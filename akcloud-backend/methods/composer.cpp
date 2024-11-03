@@ -1,6 +1,6 @@
 #include "composer.h"
 #include <queue>
-#include <Uchar.h>
+#include <uchar.h>
 #include <algorithm>
 #include<stdio.h>
 
