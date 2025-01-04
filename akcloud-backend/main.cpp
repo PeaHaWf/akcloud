@@ -1,5 +1,6 @@
 #include "methods/file_backup_restore.h"
 #include "methods/pack_file.h"
+#include "methods/check_file.h"
 #include <iostream>
 
 int main() {
