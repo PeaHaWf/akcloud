@@ -134,6 +134,7 @@ void Composer::generateHuffmanCode(huffmanNode *root) {
     generateHuffmanCode(root->right);
 }
 void Composer::composerOutput(std::string outputFileName) {
+    outputFileName += ".hf";
     std::ofstream outfile(outputFileName, std::ios::binary); // 创建输出文件流
     writeHead(outfile, outputFileName);
     unsigned char ch = 0;
@@ -179,11 +180,12 @@ void Composer::writeHead(std::ostream &outfile, std::string filename) {
     }
 
     postFix += '\n';
-
+    // Huffman标签
+    outfile << ".hf\n";
     outfile << postFix;
     std::string info = "";
     size_t lineCnt = 0;
-    //统计各字符出现个数，形成如A:1   B:3类似的数据
+    //统计各字符出现个数，形成如A:1   B:3类似的数据，换行符特殊化处理
     for (std::pair<unsigned char, int> p : charCount) {
         if (p.first != '\n' && p.first != '\r')
             info += p.first;
@@ -254,6 +256,7 @@ int Composer::compress_lz77() {
     readAllLines();
     int size = chars.size();
     int tbits = 0;
+    outputFilename += ".lz";
     std::ofstream fOut(outputFilename, std::ios::binary);
     std::string postfix;
     size_t pos = originFileName.find_last_of('.');
@@ -266,7 +269,8 @@ int Composer::compress_lz77() {
     } else {
         // std::cout << "未找到有效的文件后缀名" << std::endl;
     }
-
+    // lz77标签
+    fOut << ".lz\n";
     postFix += '\n';
     fOut << postFix;
     fOut << size << '\n';

@@ -23,6 +23,8 @@ public:
     DeComposer(const std::string &filename, const std::string &outputFilename);
     ~DeComposer();
 
+    void decomposeAlgorithmSelector();
+
     void readFile();
     int readFileLz77();
     huffmanTreeNode *create_huffmanTree();

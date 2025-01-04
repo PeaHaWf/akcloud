@@ -115,6 +115,15 @@ void DeComposer::decompose(std::string outFilename) {
         }
     }
 }
+void DeComposer::decomposeAlgorithmSelector() {
+    std::string post;
+    std::getline(infile, post);
+    if (post == ".hf") {
+        startDecompose();
+    } else {
+        decompressLz77();
+    }
+}
 void DeComposer::startDecompose() {
     //读文件内容
     readFile();
