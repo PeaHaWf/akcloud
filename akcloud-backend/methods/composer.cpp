@@ -2,7 +2,7 @@
 #include <queue>
 #include <uchar.h>
 #include <algorithm>
-#include<stdio.h>
+#include <stdio.h>
 
 huffmanNode::huffmanNode(int nodevalue) {
     val = nodevalue;
@@ -24,7 +24,7 @@ struct compare {
 };
 // 构造函数，尝试打开文件
 Composer::Composer(const std::string &filename, const std::string &outputFilename) {
-    infile.open(filename,std::ios::binary);
+    infile.open(filename, std::ios::binary);
     originFileName = filename;
     if (!infile) {
         std::cerr << "无法打开文件: " << filename << std::endl;
@@ -58,20 +58,20 @@ std::vector<unsigned char> Composer::readAllLines() {
     }
     charCount['\n'] = clines.size() - 1;
     return clines;*/
-    
+
     infile.seekg(0, std::ios::end);
     std::streamsize size = infile.tellg();
     infile.seekg(0, std::ios::beg);
     std::vector<unsigned char> clines(size);
-    infile.read(reinterpret_cast<char *> (clines.data()), size);
+    infile.read(reinterpret_cast<char *>(clines.data()), size);
 
-    //if (!infile.eof()) {
-       // std::cerr << "Error reading the file!" << std::endl;
-        //return {};
+    // if (!infile.eof()) {
+    //  std::cerr << "Error reading the file!" << std::endl;
+    // return {};
     //}
     //去掉'\0'
-    //clines.pop_back();
-    //clines.erase(std::remove(clines.begin(), clines.end(), '\r'), clines.end());
+    // clines.pop_back();
+    // clines.erase(std::remove(clines.begin(), clines.end(), '\r'), clines.end());
     for (unsigned char c : clines) {
         std::cout << c << ' ' << std::endl;
         if (!charCount.count(c))
@@ -81,8 +81,7 @@ std::vector<unsigned char> Composer::readAllLines() {
     }
     chars = clines;
     return clines;
-} 
-
+}
 
 //构建哈夫曼树，返回树根
 huffmanNode *Composer::create_huffmanTree() {
@@ -91,7 +90,7 @@ huffmanNode *Composer::create_huffmanTree() {
     for (std::pair<unsigned char, int> p : charCount) {
         pq.push(new huffmanNode(p.second, p.first));
     }
-    //构建
+    // 构建
     while (pq.size() > 1) {
         huffmanNode *cleft = pq.top();
         pq.pop();
@@ -107,7 +106,7 @@ huffmanNode *Composer::create_huffmanTree() {
     root = pq.top();
     return root;
 }
-//通过哈夫曼树获取哈夫曼编码
+// 通过哈夫曼树获取哈夫曼编码
 void Composer::generateHuffmanCode(huffmanNode *root) {
     if (root == nullptr) {
         return;
@@ -127,7 +126,7 @@ void Composer::generateHuffmanCode(huffmanNode *root) {
             cur = parent;
             parent = cur->parent;
         }
-        //将对应字符的编码储存进程序
+        // 将对应字符的编码储存进程序
         std::reverse(code.begin(), code.end());
         strCode[curchar] = code;
     }
@@ -135,7 +134,7 @@ void Composer::generateHuffmanCode(huffmanNode *root) {
     generateHuffmanCode(root->right);
 }
 void Composer::composerOutput(std::string outputFileName) {
-    std::ofstream outfile(outputFileName,std::ios::binary); // 创建输出文件流
+    std::ofstream outfile(outputFileName, std::ios::binary); // 创建输出文件流
     writeHead(outfile, outputFileName);
     unsigned char ch = 0;
     unsigned char bitcount = 0;
@@ -143,8 +142,7 @@ void Composer::composerOutput(std::string outputFileName) {
         std::cerr << "无法创建输出文件: " << outputFileName << std::endl;
         return;
     }
-    
-        
+
     for (unsigned char c : chars) {
         std::string code = strCode[c];
         for (int i = 0; i < code.size(); i++) {
@@ -159,7 +157,7 @@ void Composer::composerOutput(std::string outputFileName) {
             }
         }
     }
-    
+
     //最后没有完整输出一个字节，特判
     if (bitcount > 0 && bitcount < 8) {
         ch <<= (8 - bitcount);
@@ -187,7 +185,7 @@ void Composer::writeHead(std::ostream &outfile, std::string filename) {
     size_t lineCnt = 0;
     //统计各字符出现个数，形成如A:1   B:3类似的数据
     for (std::pair<unsigned char, int> p : charCount) {
-        if (p.first != '\n' && p.first !='\r')
+        if (p.first != '\n' && p.first != '\r')
             info += p.first;
         else if (p.first == '\n') {
             info += "nn";
@@ -199,7 +197,7 @@ void Composer::writeHead(std::ostream &outfile, std::string filename) {
         info += '\n';
         lineCnt++;
     }
-    //文件总行数
+    // 文件总行数
     std::string totalLine = std::to_string(lineCnt);
     totalLine += '\n';
 
@@ -249,7 +247,7 @@ int Composer::match(std::string &window, std::string &buffer, int *offset, unsig
 }
 
 int Composer::compress_lz77() {
-    //std::string original;
+    // std::string original;
     std::string compressed, window, buffer;
     int length = 0;
     int cur_line = 0;
@@ -265,8 +263,7 @@ int Composer::compress_lz77() {
         // 提取从 '.' 之后的子串（即文件后缀）
         postFix = originFileName.substr(pos + 1);
         // std::cout << "文件后缀名是: " << extension << std::endl;
-    }
-    else {
+    } else {
         // std::cout << "未找到有效的文件后缀名" << std::endl;
     }
 
@@ -293,15 +290,15 @@ int Composer::compress_lz77() {
         if ((length = match(window, buffer, &offset, &next)) != 0) {
             token = 0x00000001 << (token_bit - 1);
 
-            // 设置在滑动窗口找到匹配的偏移量 
+            // 设置在滑动窗口找到匹配的偏移量
             token = token | (offset << (token_bit - 1 - window_bit));
 
-            // 设置匹配串的长度 
+            // 设置匹配串的长度
             token = token | (length << (token_bit - 1 - window_bit - buffer_bit));
 
-            // 设置前向缓冲区中匹配串后面紧邻的字符 
+            // 设置前向缓冲区中匹配串后面紧邻的字符
             token = token | next;
-            
+
             tbits = token_bit;
         } else {
             token = 0x00000000;
@@ -316,16 +313,15 @@ int Composer::compress_lz77() {
                 ch |= bit;
             }
             bitcount++;
-            if (bitcount==8) {
+            if (bitcount == 8) {
                 fOut << ch;
                 bitcount = 0;
             }
             opos++;
-            
         }
         length++;
         //移动窗口和缓冲区
-        
+
         window += buffer.substr(0, length);
         int cur = ipos;
         for (int i = ipos; i < cur + length && ipos < size; i++) {
@@ -337,11 +333,11 @@ int Composer::compress_lz77() {
         while (buffer.size() < buffer_size) {
             buffer.resize(buffer_size, '\0');
         }
-        
+
         remaining -= length;
     }
 
-    //token = htonl(token);
+    // token = htonl(token);
     if (bitcount > 0 && bitcount < 8) {
         ch <<= (8 - bitcount);
         fOut << ch;

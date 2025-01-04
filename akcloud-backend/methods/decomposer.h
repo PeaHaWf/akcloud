@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include<map>
+#include <map>
 class huffmanTreeNode {
 public:
     huffmanTreeNode(int nodevalue);
@@ -36,16 +36,16 @@ private:
     std::string postFix;
     std::string outputFilename;
     huffmanTreeNode *root;
-    //源文件内容
+    // 源文件内容
     std::vector<std::string> lines;
     //字符数量统计
     std::map<unsigned char, int> charCount;
     // code
     std::map<unsigned char, std::string> strCode;
-    //lz77相关
+    // lz77相关
     std::vector<unsigned char> chars;
     //读数据相关
-    int bufferBits=0;
+    int bufferBits = 0;
     unsigned char readBuffer;
     //相关令牌
     int window_size = 4096;

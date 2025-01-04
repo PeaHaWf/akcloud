@@ -61,7 +61,7 @@ huffmanTreeNode *DeComposer::create_huffmanTree() {
     for (std::pair<unsigned char, int> p : charCount) {
         pq.push(new huffmanTreeNode(p.second, p.first));
     }
-    //构建
+    // 构建
     while (pq.size() > 1) {
         huffmanTreeNode *cleft = pq.top();
         pq.pop();
@@ -82,9 +82,9 @@ void DeComposer::decompose(std::string outFilename) {
     std::ofstream fOut(outFilename, std::ios::binary);
     huffmanTreeNode *cur = root;
     unsigned char bitcount = 0;
-    //文件大小，单位字节
+    // 文件大小，单位字节
     int fileSize = root->val;
-    //已解压字节数
+    // 已解压字节数
     int compressSize = 0;
     unsigned char curch;
     while (1) {
@@ -95,13 +95,13 @@ void DeComposer::decompose(std::string outFilename) {
         curch = static_cast<unsigned char>(i);
         bitcount = 0;
         while (bitcount < 8) {
-            //按照哈夫曼树进行遍历
+            // 按照哈夫曼树进行遍历
             if (curch & 0x80) {
                 cur = cur->right;
             } else {
                 cur = cur->left;
             }
-            //遍历到底，代表解压一个字节
+            // 遍历到底，代表解压一个字节
             if (cur->left == nullptr && cur->right == nullptr) {
                 fOut << cur->c;
                 cur = root;
@@ -152,7 +152,7 @@ int DeComposer::decompressLz77() {
     window.resize(window_size);
     buffer.resize(buffer_size);
 
-    int offset=0;
+    int offset = 0;
     unsigned char next;
 
     //根据头部信息大小设置ipos
@@ -160,7 +160,7 @@ int DeComposer::decompressLz77() {
     int opos = 0;
     int current_bit = 0;
     unsigned char curch;
-    outputFilename += '.'+postFix;
+    outputFilename += '.' + postFix;
     std::ofstream fOut(outputFilename, std::ios::binary);
     int i = 0;
     while (remaining > 0) {
@@ -218,8 +218,8 @@ int DeComposer::decompressLz77() {
         }
         //移动窗口和缓冲区
         window += window.substr(offset, length - 1);
-        window += buffer[length-1];
-        window.erase(window.begin(), window.begin()+length);
+        window += buffer[length - 1];
+        window.erase(window.begin(), window.begin() + length);
     }
     return opos;
 }

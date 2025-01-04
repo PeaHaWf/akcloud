@@ -6,7 +6,7 @@
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include<map>
+#include <map>
 class huffmanNode {
 public:
     huffmanNode(int nodevalue);
@@ -41,7 +41,7 @@ private:
     std::string originFileName;
     std::string outputFilename;
     huffmanNode *root;
-    //源文件内容
+    // 源文件内容
     std::vector<std::string> lines;
     std::vector<unsigned char> chars;
     //字符数量统计
