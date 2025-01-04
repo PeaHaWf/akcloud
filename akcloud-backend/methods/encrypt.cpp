@@ -16,16 +16,15 @@ bool AESEncrypt::encrypt(const std::string &in, std::string &out, const unsigned
     bool ret = 0;
     std::ifstream fIn(in, std::ios::in | std::ios::binary);
     std::ofstream fOut(out, std::ios::out | std::ios::binary);
-    
+
     EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, ivec);
-    
+
     fIn.seekg(0, std::ios::end);
     uint64_t inputFileLen = fIn.tellg();
     fIn.seekg(0, std::ios::beg);
 
-
     char readBuf[8192] = {0x00};
-
+    //使用unsigned char处理字节，写入时需要强制转换为char
     uint8_t writeBuf[8192 + 32] = {0x00};
 
     uint64_t Total = 0;
