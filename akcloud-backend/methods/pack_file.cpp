@@ -1,4 +1,5 @@
 #include "pack_file.h"
+#include "check_file.h"
 
 bool PackFile::packFile(const std::string &filePath, const std::string packFilePath) {
     auto nowTime = std::chrono::system_clock::now();
@@ -53,6 +54,11 @@ bool PackFile::packFile(const std::string &filePath, const std::string packFileP
             packFile.write(reinterpret_cast<const char *>(&dirSize), sizeof(dirSize));
         }
     }
+
+    // Add CRC
+    std::uint32_t crc = CheckFile::generateCRC(packFilePathObj.string());
+    packFile.write(reinterpret_cast<const char *>(&crc), sizeof(crc));
+
     return true;
 }
 
@@ -69,6 +75,12 @@ bool PackFile::unpackFile(const std::string &packFilePath, const std::string &un
     std::ifstream packFile(packFilePathObj, std::ios::binary);
     if (!packFile.is_open()) {
         std::cerr << "Failed to open pack file." << std::endl;
+        return false;
+    }
+
+    // Check CRC
+    if (!CheckFile::checkFile(packFilePathObj.string())) {
+        std::cerr << "CRC check failed." << std::endl;
         return false;
     }
 
@@ -105,7 +117,6 @@ bool PackFile::unpackFile(const std::string &packFilePath, const std::string &un
                 remainSize -= readSize;
             }
 
-            // dstFile << packFile.rdbuf();
             break;
         }
         case 'D': {
