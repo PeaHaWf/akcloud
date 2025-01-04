@@ -4,10 +4,16 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include <iomanip>
+#include <sstream>
+#include <chrono>
+#include <vector>
+#include <algorithm>
 
 class PackFile {
 public:
-    static bool packFile(const std::string &sourcePath, const std::string &backupPath);
+    static bool packFile(const std::string &filePath, const std::string packFilePath);
+    static bool unpackFile(const std::string &packFilePath, const std::string &unpackFilePath);
 };
 
-#endif
+#endif // PACK_FILE_H
