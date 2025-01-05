@@ -6,6 +6,10 @@ out/
 .vscode/
 *.exe
 main
+server
 backupFiles/
 test/
 test.txt
+unpackFiles/
+backup/
+pack/

@@ -1,6 +1,7 @@
 #include "pack_file.h"
+#include "check_file.h"
 
-bool PackFile::packFile(const std::string &filePath, const std::string packFilePath) {
+bool PackFile::packFile(const std::string &filePath, std::string packFilePath) {
     auto nowTime = std::chrono::system_clock::now();
     auto nowTime_t = std::chrono::system_clock::to_time_t(nowTime);
     std::tm now_tm = *std::localtime(&nowTime_t);
@@ -10,7 +11,25 @@ bool PackFile::packFile(const std::string &filePath, const std::string packFileP
     std::string timeStr = oss.str();
 
     // pack_time.akpk
+    // 展开用户目录
+    if (packFilePath[0] == '~') {
+        const char *homeDir = std::getenv("HOME");
+        if (homeDir) {
+            packFilePath.replace(0, 1, homeDir);
+        }
+    }
+
+    // 将 packFilePath 转换为绝对路径
     std::filesystem::path packFilePathObj(packFilePath);
+    if (!packFilePathObj.is_absolute()) {
+        packFilePathObj = std::filesystem::absolute(packFilePathObj);
+    }
+    std::cout << "Absolute pack file path: " << packFilePathObj << std::endl;
+
+    // 检查 packFilePath 是否存在，如果不存在就创建它
+    if (!std::filesystem::exists(packFilePathObj)) {
+        std::filesystem::create_directories(packFilePathObj);
+    }
     packFilePathObj /= "pack_" + timeStr + ".akpk";
 
     std::filesystem::create_directories(packFilePathObj.parent_path());
@@ -53,6 +72,31 @@ bool PackFile::packFile(const std::string &filePath, const std::string packFileP
             packFile.write(reinterpret_cast<const char *>(&dirSize), sizeof(dirSize));
         }
     }
+
+    // Add CRC
+    packFile.close();
+
+    std::ifstream packFileIn(packFilePathObj, std::ios::binary);
+    if (!packFileIn.is_open()) {
+        std::cerr << "Failed to open pack file for reading." << std::endl;
+        return false;
+    }
+
+    std::vector<char> buff(std::filesystem::file_size(packFilePathObj));
+    packFileIn.read(buff.data(), buff.size());
+    packFileIn.close();
+
+    std::uint32_t crc = CheckFile::generateCRC(buff);
+
+    // 重新打开文件以写入 CRC
+    std::ofstream packFileOut(packFilePathObj, std::ios::binary | std::ios::app);
+    if (!packFileOut.is_open()) {
+        std::cerr << "Failed to open pack file for writing." << std::endl;
+        return false;
+    }
+    packFileOut.write(reinterpret_cast<const char *>(&crc), sizeof(crc));
+    packFileOut.close();
+
     return true;
 }
 
@@ -72,8 +116,18 @@ bool PackFile::unpackFile(const std::string &packFilePath, const std::string &un
         return false;
     }
 
+    // Check CRC
+    if (!CheckFile::checkFile(packFilePathObj.string())) {
+        std::cerr << "CRC check failed." << std::endl;
+        return false;
+    }
+
+    // 去掉CRC长度
+    std::streamoff fileSize = std::filesystem::file_size(packFilePathObj) - sizeof(std::uint32_t);
+    packFile.seekg(0, std::ios::beg);
+
     std::filesystem::create_directories(unpackFilePathObj);
-    while (!packFile.eof()) {
+    while (packFile.tellg() < fileSize) {
         char identifier;
         packFile.read(&identifier, sizeof(identifier));
         if (packFile.eof()) break;

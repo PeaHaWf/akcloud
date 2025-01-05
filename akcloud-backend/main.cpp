@@ -1,5 +1,6 @@
 #include "methods/file_backup_restore.h"
 #include "methods/pack_file.h"
+#include "methods/check_file.h"
 #include <iostream>
 
 int main() {
@@ -22,7 +23,7 @@ int main() {
     // }
 
     // 解包文件
-    if (PackFile::unpackFile(backupFile+"/backup_test.akpk", "./unpackFiles")) {
+    if (PackFile::unpackFile(backupFile + "/backup_test.akpk", "./unpackFiles")) {
         std::cout << "File unpacked successfully." << std::endl;
     } else {
         std::cout << "File unpack failed." << std::endl;
