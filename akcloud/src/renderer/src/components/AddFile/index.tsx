@@ -25,23 +25,26 @@ const AddFile = () => {
     }
   }
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files
-    console.log('file:', file)
-    if (file && file.length > 0) {
-      const formData = new FormData()
-      formData.append('file', file[0])
-      try {
-        const response = await fetch('http://127.0.0.1:3001/api/files/backup', {
-          method: 'POST',
-          body: formData
-        })
-        if (!response.ok) {
-          throw new Error('File upload failed')
-        } else {
-          console.log('File uploaded successfully')
+    const files = e.target.files
+    console.log('file:', files)
+    if (files && files.length > 0) {
+      for (let i = 0; i < files.length; i++) {
+        const formData = new FormData()
+        formData.append('file', files[i])
+        formData.append('relativePath', files[i].webkitRelativePath)
+        try {
+          const response = await fetch('http://localhost:3001/api/files/backup', {
+            method: 'POST',
+            body: formData
+          })
+          if (!response.ok) {
+            throw new Error('File upload failed')
+          } else {
+            console.log('File uploaded successfully')
+          }
+        } catch (e) {
+          console.log('Error uploading file:', e)
         }
-      } catch (e) {
-        console.log('Error uploading file:', e)
       }
     }
     if (e.target) {
@@ -72,6 +75,13 @@ const AddFile = () => {
           ref={fileInputRef}
           style={{ display: 'none' }}
           onChange={handleFileChange}
+        />
+        <input
+          type="file"
+          ref={floderInputRef}
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+          {...({ directory: '', webkitdirectory: '' } as any)}
         />
       </Menu>
     </>

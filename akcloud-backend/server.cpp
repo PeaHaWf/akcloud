@@ -7,7 +7,9 @@
 #include <string>
 #include <ctime>
 #include <nlohmann/json.hpp>
+#include <fstream>
 #include <httplib.h>
+namespace fs = std::filesystem;
 
 struct FileInfo {
     std::string name;
@@ -40,7 +42,7 @@ std::vector<FileInfo> getFiles(const std::string &directoryPath) {
 int main() {
     httplib::Server svr;
     std::string backendBasePath = "akcloud/akcloud-backend/";
-
+    std::string backupBasePath = "backup/";
     // 中间件：为所有响应添加 CORS 头
     svr.set_pre_routing_handler([](const httplib::Request &req, httplib::Response &res) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -60,7 +62,7 @@ int main() {
     // 获得files
     svr.Get("/api/files", [](const httplib::Request &, httplib::Response &res) {
         std::cout << "Received request for /api/files" << std::endl;
-        auto files = getFiles("./test");
+        auto files = getFiles("./backup");
         nlohmann::json jsonFiles = nlohmann::json::array();
         for (const auto &file : files) {
             jsonFiles.push_back({{"name", file.name},
@@ -72,26 +74,20 @@ int main() {
     });
 
     // 备份文件
-    svr.Post("/api/files/backup", [&backendBasePath](const httplib::Request &req, httplib::Response &res) {
+    svr.Post("/api/files/backup", [&backupBasePath](const httplib::Request &req, httplib::Response &res) {
         std::cout << "Received request for /api/files/backup" << std::endl;
         try {
-            std::string body = req.body;
-            std::string key = "\"path\":\"";
-            size_t start = body.find(key) + key.length();
-            size_t end = body.find("\"", start);
-            std::string relativePath = body.substr(start, end - start);
+            auto file = req.get_file_value("file");
+            auto relativePath = req.get_param_value("relativePath");
+            std::string filePath = backupBasePath + "/" + file.filename;
 
-            std::string absolutePath = backendBasePath + relativePath;
+            fs::create_directories(fs::path(filePath).parent_path());
 
-            std::cout << "Received relative path: " << relativePath << std::endl;
-            std::cout << "Computed absolute path: " << absolutePath << std::endl;
-
-            if (FileBackupRestore::copyFile(absolutePath, "backupFiles")) {
-                std::cout << "File backed up successfully." << std::endl;
-            } else {
-                std::cout << "File backup failed." << std::endl;
-            }
-            res.set_content("{\"message\": \"Path processed successfully\"}", "application/json");
+            std::ofstream ofs(filePath, std::ios::binary);
+            ofs.write(file.content.c_str(), file.content.size());
+            ofs.close();
+            res.status = 200;
+            res.set_content("{\"message\": \"File uploaded successfully\"}", "application/json");
         } catch (const std::exception &e) {
             res.status = 400;
             res.set_content("{\"error\": \"Invalid request\"}", "application/json");
