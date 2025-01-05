@@ -3,15 +3,9 @@ import { useRef, useState } from 'react'
 import MoreHoriz from '@mui/icons-material/MoreHoriz'
 
 import floderImg from '../assets/floder.png'
-interface FileProps {
-  name: string
-  type: string
-  size: number
-  date: string
-  icon: string
-}
+import { FileProps } from '@renderer/type'
 
-const File = () => {
+const File: React.FC<FileProps> = ({ name, isDirectory, size, date }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     setAnchorEl(event.currentTarget)
@@ -59,8 +53,8 @@ const File = () => {
       </Menu>
       <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <img src={floderImg} alt="floder" width="100px" />
-        <Typography sx={{ fontSize: 14, mb: -1 }}>dir</Typography>
-        <Typography sx={{ fontSize: 12, color: 'grey' }}>2024/9/7</Typography>
+        <Typography sx={{ fontSize: 14, mb: -1 }}>{name}</Typography>
+        <Typography sx={{ fontSize: 12, color: 'grey' }}>{date}</Typography>
       </Box>
     </Box>
   )
