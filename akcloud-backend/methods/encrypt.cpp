@@ -12,11 +12,16 @@ AESEncrypt::~AESEncrypt() {
     EVP_CIPHER_CTX_cleanup(ctx1);
     EVP_CIPHER_CTX_free(ctx1);
 }
-bool AESEncrypt::encrypt(const std::string &in, std::string &out, const unsigned char *key, const unsigned char *ivec) {
+bool AESEncrypt::encrypt(const std::string &in, std::string &out, const unsigned char *key) {
+    unsigned char *ivec = generateIV(16);
+    for (size_t i = 0; i < 16; ++i) {
+        std::cout << std::hex << (int)ivec[i] << " "; // 以十六进制显示IV
+    }
+    
     bool ret = 0;
     std::ifstream fIn(in, std::ios::in | std::ios::binary);
     std::ofstream fOut(out, std::ios::out | std::ios::binary);
-
+    fOut.write(reinterpret_cast<char *>(ivec), 16);
     EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, ivec);
 
     fIn.seekg(0, std::ios::end);
@@ -54,16 +59,18 @@ bool AESEncrypt::encrypt(const std::string &in, std::string &out, const unsigned
     ret = 1;
     return ret;
 }
-bool AESEncrypt::decrypt(const std::string &in, std::string &out, const unsigned char *key, const unsigned char *ivec) {
+bool AESEncrypt::decrypt(const std::string &in, std::string &out, const unsigned char *key) {
     std::ifstream fIn(in, std::ios::in | std::ios::binary);
-
+    int rr = 1;
     std::ofstream fOut(out, std::ios::out | std::ios::binary);
-    int rr = EVP_DecryptInit_ex(ctx1, EVP_aes_256_cbc(), NULL, key, ivec);
+    unsigned char *ivec = new unsigned char[16];
 
     fIn.seekg(0, std::ios::end);
     uint64_t inputFileLen = fIn.tellg();
     fIn.seekg(0, std::ios::beg);
-
+    inputFileLen -= 16;
+    fIn.read(reinterpret_cast<char *>(ivec), 16);
+    rr = EVP_DecryptInit_ex(ctx1, EVP_aes_256_cbc(), NULL, key, ivec);
     char readBuf[8192] = {0x00};
 
     uint8_t writeBuf[8192 + 32] = {0x00};
@@ -93,5 +100,18 @@ bool AESEncrypt::decrypt(const std::string &in, std::string &out, const unsigned
     }
     fIn.close();
     fOut.close();
-    return true;
+    return rr;
+}
+
+unsigned char *AESEncrypt::generateIV(size_t length) {
+    unsigned char *iv = new unsigned char[length];
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::uniform_int_distribution<int> dis(0, 255);
+
+    for (size_t i = 0; i < length; ++i) {
+        iv[i] = static_cast<unsigned char>(dis(gen));
+    }
+
+    return iv;
 }
