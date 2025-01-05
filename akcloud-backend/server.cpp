@@ -39,12 +39,17 @@ std::vector<FileInfo> getFiles(const std::string &directoryPath) {
 
 int main() {
     httplib::Server svr;
+    std::string backendBasePath = "akcloud/akcloud-backend/";
 
     // 中间件：为所有响应添加 CORS 头
     svr.set_pre_routing_handler([](const httplib::Request &req, httplib::Response &res) {
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
         res.set_header("Access-Control-Allow-Headers", "Content-Type");
+        if (req.method == "OPTIONS") {
+            res.status = 204; // No Content
+            return httplib::Server::HandlerResponse::Handled;
+        }
         return httplib::Server::HandlerResponse::Unhandled;
     });
 
@@ -52,6 +57,7 @@ int main() {
         res.set_content("", "text/plain");
     });
 
+    // 获得files
     svr.Get("/api/files", [](const httplib::Request &, httplib::Response &res) {
         std::cout << "Received request for /api/files" << std::endl;
         auto files = getFiles("./test");
@@ -63,6 +69,33 @@ int main() {
                                  {"lastModified", file.lastModified}});
         }
         res.set_content(jsonFiles.dump(), "application/json");
+    });
+
+    // 备份文件
+    svr.Post("/api/files/backup", [&backendBasePath](const httplib::Request &req, httplib::Response &res) {
+        std::cout << "Received request for /api/files/backup" << std::endl;
+        try {
+            std::string body = req.body;
+            std::string key = "\"path\":\"";
+            size_t start = body.find(key) + key.length();
+            size_t end = body.find("\"", start);
+            std::string relativePath = body.substr(start, end - start);
+
+            std::string absolutePath = backendBasePath + relativePath;
+
+            std::cout << "Received relative path: " << relativePath << std::endl;
+            std::cout << "Computed absolute path: " << absolutePath << std::endl;
+
+            if (FileBackupRestore::copyFile(absolutePath, "backupFiles")) {
+                std::cout << "File backed up successfully." << std::endl;
+            } else {
+                std::cout << "File backup failed." << std::endl;
+            }
+            res.set_content("{\"message\": \"Path processed successfully\"}", "application/json");
+        } catch (const std::exception &e) {
+            res.status = 400;
+            res.set_content("{\"error\": \"Invalid request\"}", "application/json");
+        }
     });
 
     std::cout << "Server is running on http://localhost:3001" << std::endl;

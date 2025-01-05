@@ -1,13 +1,53 @@
 import { Button, Menu, MenuItem } from '@mui/material'
 import Add from '@mui/icons-material/Add'
 import { useState } from 'react'
+import React, { useRef } from 'react'
+
 const AddFile = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const floderInputRef = useRef<HTMLInputElement>(null)
+
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
   }
   const handleClose = () => {
     setAnchorEl(null)
+  }
+  const handleFileUploadClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click()
+    }
+  }
+  const handleFloderUploadClick = () => {
+    if (floderInputRef.current) {
+      floderInputRef.current.click()
+    }
+  }
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files
+    console.log('file:', file)
+    if (file && file.length > 0) {
+      const formData = new FormData()
+      formData.append('file', file[0])
+      try {
+        const response = await fetch('http://127.0.0.1:3001/api/files/backup', {
+          method: 'POST',
+          body: formData
+        })
+        if (!response.ok) {
+          throw new Error('File upload failed')
+        } else {
+          console.log('File uploaded successfully')
+        }
+      } catch (e) {
+        console.log('Error uploading file:', e)
+      }
+    }
+    if (e.target) {
+      e.target.value = ''
+    }
+    handleClose()
   }
 
   return (
@@ -25,8 +65,14 @@ const AddFile = () => {
         添加文件
       </Button>
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-        <MenuItem onClick={handleClose}>上传文件</MenuItem>
-        <MenuItem onClick={handleClose}>上传文件夹</MenuItem>
+        <MenuItem onClick={handleFileUploadClick}>上传文件</MenuItem>
+        <MenuItem onClick={handleFloderUploadClick}>上传文件夹</MenuItem>
+        <input
+          type="file"
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          onChange={handleFileChange}
+        />
       </Menu>
     </>
   )

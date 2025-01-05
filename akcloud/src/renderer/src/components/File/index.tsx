@@ -1,5 +1,5 @@
-import { Box, Card, CardHeader, Menu, MenuItem, Typography } from '@mui/material'
-import { useRef, useState } from 'react'
+import { Box, Menu, MenuItem, Typography } from '@mui/material'
+import { useState } from 'react'
 import MoreHoriz from '@mui/icons-material/MoreHoriz'
 
 import floderImg from '../assets/floder.png'
@@ -58,8 +58,7 @@ const File: React.FC<FileProps> = ({ name, isDirectory, size, lastModified }) =>
         <MoreHoriz />
       </Box>
       <Menu anchorEl={anchorEl} open={Boolean(anchorEl)} onClose={handleClose}>
-        <MenuItem onClick={handleClose}>数据还原</MenuItem>
-        <MenuItem onClick={handleClose}>上传云端</MenuItem>
+        <MenuItem onClick={handleClose}>数据备份</MenuItem>
       </Menu>
       <Box>
         {isDirectory ? (
