@@ -26,21 +26,15 @@ std::uint32_t CheckFile::crc32(const void *data, std::size_t length) {
 }
 
 // generate CRC
-std::uint32_t CheckFile::generateCRC(const std::string &filePath) {
-    std::ifstream file(filePath, std::ios::binary);
-    if (!file.is_open()) {
-        std::cerr << "Failed to open file." << std::endl;
-        return false;
-    }
+std::uint32_t CheckFile::generateCRC(const std::vector<char> &data) {
     generate_crc32_table();
 
     std::uint32_t crc = 0xFFFFFFFF;
-    while (!file.eof()) {
-        char buff[4096];
-        file.read(buff, sizeof(buff));
-        crc = crc32(buff, file.gcount()) ^ (crc >> 8);
-    }
+    for (const auto &ch : data)
+        crc = crc32_table[(crc ^ ch) & 0xFF] ^ (crc >> 8);
     crc ^= 0xFFFFFFFF;
+
+    std::cout << "CRC: " << std::hex << crc << std::dec << std::endl;
 
     return crc;
 }
@@ -58,13 +52,13 @@ bool CheckFile::checkFile(const std::string &filePath) {
     file.seekg(-static_cast<std::streamoff>(sizeof(std::uint32_t)), std::ios::end);
     file.read(reinterpret_cast<char *>(&crc), sizeof(crc));
 
-    std::streamoff fileLength = file.tellg(); // 文件指针当前位置，不包含CRC
-    file.seekg(0, std::ios::beg);             // 文件指针移到文件开头
+    std::streamoff fileLength = file.tellg();
+    file.seekg(0, std::ios::beg); // 文件指针移到文件开头
 
-    std::vector<char> buff(fileLength);
+    std::vector<char> buff(fileLength - sizeof(std::uint32_t));
     file.read(buff.data(), fileLength);
 
-    std::uint32_t crcCheck = crc32(buff.data(), fileLength);
+    std::uint32_t crcCheck = generateCRC(buff);
     if (crc != crcCheck) {
         std::cerr << "CRC check failed." << std::endl;
         return false;

@@ -4,10 +4,11 @@
 #include <iostream>
 #include <fstream>
 #include <filesystem>
+#include <vector>
 
 class CheckFile {
 public:
-    static std::uint32_t generateCRC(const std::string &filePath);
+    static std::uint32_t generateCRC(const std::vector<char> &data);
     static bool checkFile(const std::string &filePath);
 
 private:
