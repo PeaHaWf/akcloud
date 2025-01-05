@@ -3,9 +3,19 @@ import { useRef, useState } from 'react'
 import MoreHoriz from '@mui/icons-material/MoreHoriz'
 
 import floderImg from '../assets/floder.png'
+import fileImg from '../assets/file.png'
 import { FileProps } from '@renderer/type'
 
-const File: React.FC<FileProps> = ({ name, isDirectory, size, date }) => {
+const formatDate = (timestamp: string) => {
+  //只显示年月日
+  const date = new Date(parseInt(timestamp, 10) * 1000)
+  const year = date.getFullYear()
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const day = date.getDate().toString().padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
+const File: React.FC<FileProps> = ({ name, isDirectory, size, lastModified }) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     setAnchorEl(event.currentTarget)
@@ -51,10 +61,24 @@ const File: React.FC<FileProps> = ({ name, isDirectory, size, date }) => {
         <MenuItem onClick={handleClose}>数据还原</MenuItem>
         <MenuItem onClick={handleClose}>上传云端</MenuItem>
       </Menu>
-      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-        <img src={floderImg} alt="floder" width="100px" />
-        <Typography sx={{ fontSize: 14, mb: -1 }}>{name}</Typography>
-        <Typography sx={{ fontSize: 12, color: 'grey' }}>{date}</Typography>
+      <Box>
+        {isDirectory ? (
+          <img src={floderImg} alt="floder" height="100px" />
+        ) : (
+          <img src={fileImg} alt="file" height="100px" />
+        )}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-end',
+            alignItems: 'center',
+            gap: 1
+          }}
+        >
+          <Typography sx={{ fontSize: 14, mb: -1 }}>{name}</Typography>
+          <Typography sx={{ fontSize: 12, color: 'grey' }}>{formatDate(lastModified)}</Typography>
+        </Box>
       </Box>
     </Box>
   )

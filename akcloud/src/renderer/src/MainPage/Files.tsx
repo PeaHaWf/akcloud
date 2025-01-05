@@ -17,11 +17,11 @@ const Files = () => {
           throw new Error('Network response was not ok')
         }
         const data = await response.json()
-        console.log('Request successful', data) // 请求成功日志
+        console.log('Request successful', data)
         setFiles(data)
-        console.log('Files set', data) // 数据设置日志
+        console.log('Files set', data)
       } catch (e) {
-        console.log('Error fetching files:', e) // 错误日志
+        console.log('Error fetching files:', e)
       }
     }
 

@@ -1,4 +1,7 @@
 #include <iostream>
+#include "methods/file_backup_restore.h"
+#include "methods/pack_file.h"
+#include "methods/check_file.h"
 #include <filesystem>
 #include <vector>
 #include <string>
@@ -26,7 +29,7 @@ std::vector<FileInfo> getFiles(const std::string &directoryPath) {
         auto sctp = std::chrono::time_point_cast<std::chrono::system_clock::duration>(
             ftime - decltype(ftime)::clock::now() + std::chrono::system_clock::now()); // 转换为系统时钟时间
         std::time_t cftime = std::chrono::system_clock::to_time_t(sctp);
-        fileInfo.lastModified = std::ctime(&cftime);
+        fileInfo.lastModified = std::to_string(cftime);
 
         files.push_back(fileInfo);
         // std::cout << fileInfo.name << std::endl;
