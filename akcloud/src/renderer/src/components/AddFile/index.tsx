@@ -33,7 +33,7 @@ const AddFile = () => {
         formData.append('file', files[i])
         formData.append('relativePath', files[i].webkitRelativePath)
         try {
-          const response = await fetch('http://localhost:3001/api/files/backup', {
+          const response = await fetch('/api/files/backup', {
             method: 'POST',
             body: formData
           })

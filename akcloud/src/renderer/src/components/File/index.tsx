@@ -1,4 +1,4 @@
-import { Box, Menu, MenuItem, Typography } from '@mui/material'
+import { Box, Checkbox, Menu, MenuItem, Typography } from '@mui/material'
 import { useState } from 'react'
 import MoreHoriz from '@mui/icons-material/MoreHoriz'
 
@@ -15,7 +15,19 @@ const formatDate = (timestamp: string) => {
   return `${year}-${month}-${day}`
 }
 
-const File: React.FC<FileProps> = ({ name, isDirectory, size, lastModified }) => {
+type ExtendedFileProps = FileProps & {
+  showCheckbox: boolean
+  onCheckboxChange: (fileName: string, isChecked: boolean) => void
+}
+
+const File: React.FC<ExtendedFileProps> = ({
+  name,
+  isDirectory,
+  size,
+  lastModified,
+  showCheckbox,
+  onCheckboxChange
+}) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const handleClick = (event: React.MouseEvent<HTMLDivElement>) => {
     setAnchorEl(event.currentTarget)
@@ -23,7 +35,9 @@ const File: React.FC<FileProps> = ({ name, isDirectory, size, lastModified }) =>
   const handleClose = () => {
     setAnchorEl(null)
   }
-
+  const handleCheckboxChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    onCheckboxChange(name, event.target.checked)
+  }
   return (
     <Box
       sx={{
@@ -38,6 +52,12 @@ const File: React.FC<FileProps> = ({ name, isDirectory, size, lastModified }) =>
         position: 'relative'
       }}
     >
+      {showCheckbox && (
+        <Checkbox
+          sx={{ position: 'absolute', top: 0, left: 0, zIndex: 1 }}
+          onChange={handleCheckboxChange}
+        />
+      )}
       <Box
         sx={{
           width: '30px',

@@ -1,7 +1,7 @@
 #include "pack_file.h"
 #include "check_file.h"
 
-bool PackFile::packFile(const std::string &filePath, const std::string packFilePath) {
+bool PackFile::packFile(const std::string &filePath, std::string packFilePath) {
     auto nowTime = std::chrono::system_clock::now();
     auto nowTime_t = std::chrono::system_clock::to_time_t(nowTime);
     std::tm now_tm = *std::localtime(&nowTime_t);
@@ -11,7 +11,25 @@ bool PackFile::packFile(const std::string &filePath, const std::string packFileP
     std::string timeStr = oss.str();
 
     // pack_time.akpk
+    // 展开用户目录
+    if (packFilePath[0] == '~') {
+        const char *homeDir = std::getenv("HOME");
+        if (homeDir) {
+            packFilePath.replace(0, 1, homeDir);
+        }
+    }
+
+    // 将 packFilePath 转换为绝对路径
     std::filesystem::path packFilePathObj(packFilePath);
+    if (!packFilePathObj.is_absolute()) {
+        packFilePathObj = std::filesystem::absolute(packFilePathObj);
+    }
+    std::cout << "Absolute pack file path: " << packFilePathObj << std::endl;
+
+    // 检查 packFilePath 是否存在，如果不存在就创建它
+    if (!std::filesystem::exists(packFilePathObj)) {
+        std::filesystem::create_directories(packFilePathObj);
+    }
     packFilePathObj /= "pack_" + timeStr + ".akpk";
 
     std::filesystem::create_directories(packFilePathObj.parent_path());

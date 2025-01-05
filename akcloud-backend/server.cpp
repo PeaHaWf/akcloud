@@ -18,6 +18,14 @@ struct FileInfo {
     std::string lastModified;
 };
 
+void copy_files_to_pack(const std::vector<std::string> &files, const fs::path &backup_path, const fs::path &pack_path) {
+    for (const auto &file : files) {
+        fs::path source = backup_path / file;
+        fs::path destination = pack_path / file;
+        fs::copy(source, destination, fs::copy_options::overwrite_existing);
+    }
+}
+
 // 获得目录下的文件信息
 std::vector<FileInfo> getFiles(const std::string &directoryPath) {
     std::vector<FileInfo> files;
@@ -43,6 +51,7 @@ int main() {
     httplib::Server svr;
     std::string backendBasePath = "akcloud/akcloud-backend/";
     std::string backupBasePath = "backup/";
+    std::string packBasePath = "pack/";
     // 中间件：为所有响应添加 CORS 头
     svr.set_pre_routing_handler([](const httplib::Request &req, httplib::Response &res) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -55,12 +64,12 @@ int main() {
         return httplib::Server::HandlerResponse::Unhandled;
     });
 
-    svr.Options("/api/files", [](const httplib::Request &, httplib::Response &res) {
+    svr.Options("/files", [](const httplib::Request &, httplib::Response &res) {
         res.set_content("", "text/plain");
     });
 
     // 获得files
-    svr.Get("/api/files", [](const httplib::Request &, httplib::Response &res) {
+    svr.Get("/files", [](const httplib::Request &, httplib::Response &res) {
         std::cout << "Received request for /api/files" << std::endl;
         auto files = getFiles("./backup");
         nlohmann::json jsonFiles = nlohmann::json::array();
@@ -74,7 +83,7 @@ int main() {
     });
 
     // 备份文件
-    svr.Post("/api/files/backup", [&backupBasePath](const httplib::Request &req, httplib::Response &res) {
+    svr.Post("/files/backup", [&backupBasePath](const httplib::Request &req, httplib::Response &res) {
         std::cout << "Received request for /api/files/backup" << std::endl;
         try {
             auto file = req.get_file_value("file");
@@ -88,6 +97,47 @@ int main() {
             ofs.close();
             res.status = 200;
             res.set_content("{\"message\": \"File uploaded successfully\"}", "application/json");
+        } catch (const std::exception &e) {
+            res.status = 400;
+            res.set_content("{\"error\": \"Invalid request\"}", "application/json");
+        }
+    });
+
+    // 打包文件
+    svr.Post("/files/pack", [&backupBasePath, &packBasePath](const httplib::Request &req, httplib::Response &res) {
+        std::cout << "Received request for /api/files/pack" << std::endl;
+        try {
+            auto json = nlohmann::json::parse(req.body);
+            std::vector<std::string> files = json["files"];
+            std::string address = json["address"];
+
+            fs::path pack_path = packBasePath;
+            fs::path backup_path = backupBasePath;
+
+            // 创建或清空 pack 文件夹
+            if (fs::exists(pack_path)) {
+                for (const auto &entry : fs::directory_iterator(pack_path))
+                    fs::remove_all(entry.path());
+            } else {
+                fs::create_directory(pack_path);
+            }
+            // back→pack
+            for (const auto &file : files) {
+                fs::path source = backup_path / file;
+                fs::path destination = pack_path / file;
+                fs::copy(source, destination, fs::copy_options::overwrite_existing);
+            }
+            std::cout << address << std::endl;
+            if (PackFile::packFile(pack_path.string(), address)) {
+                res.status = 200;
+                res.set_content("{\"message\": \"Files packed successfully\"}", "application/json");
+            } else {
+                res.status = 400;
+                res.set_content("{\"error\": \"Failed to pack files\"}", "application/json");
+            }
+
+            res.status = 200;
+            res.set_content("{\"message\": \"Files packed successfully\"}", "application/json");
         } catch (const std::exception &e) {
             res.status = 400;
             res.set_content("{\"error\": \"Invalid request\"}", "application/json");
