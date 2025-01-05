@@ -6,12 +6,12 @@
 int main() {
     //压缩指定路径下文件到指定输出文件
     Composer composer("D:\\mav\\testtxt.txt", "out");
-     composer.compress_lz77();
+     //composer.compress_lz77();
 
-    //composer.startCompose();
+    composer.startCompose();
     //读取待解压文件,设置输出文件名（后缀不需要）
-    DeComposer decomposer("out.lz", "output");
-    // decomposer.decompressLz77();
+    DeComposer decomposer("out.hf", "output");
+    
     decomposer.decomposeAlgorithmSelector();
 
     return 0;

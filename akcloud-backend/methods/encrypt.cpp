@@ -17,10 +17,18 @@ bool AESEncrypt::encrypt(const std::string &in, std::string &out, const unsigned
     for (size_t i = 0; i < 16; ++i) {
         std::cout << std::hex << (int)ivec[i] << " "; // 以十六进制显示IV
     }
-    
+
     bool ret = 0;
     std::ifstream fIn(in, std::ios::in | std::ios::binary);
+    if (!fIn.is_open()) {
+        std::cerr << "Error: Failed to open file " << std::endl;
+        return 0;
+    }
     std::ofstream fOut(out, std::ios::out | std::ios::binary);
+    if (!fOut.is_open()) {
+        std::cerr << "Error: Failed to open file " << std::endl;
+        return 0;
+    }
     fOut.write(reinterpret_cast<char *>(ivec), 16);
     EVP_EncryptInit_ex(ctx, EVP_aes_256_cbc(), NULL, key, ivec);
 
@@ -63,6 +71,16 @@ bool AESEncrypt::decrypt(const std::string &in, std::string &out, const unsigned
     std::ifstream fIn(in, std::ios::in | std::ios::binary);
     int rr = 1;
     std::ofstream fOut(out, std::ios::out | std::ios::binary);
+    if (!fIn.is_open()) {
+        std::cerr << "Error: Failed to open file " << std::endl;
+        return 0;
+    }
+
+    if (!fOut.is_open()) {
+        std::cerr << "Error: Failed to open file " << std::endl;
+        return 0;
+    }
+
     unsigned char *ivec = new unsigned char[16];
 
     fIn.seekg(0, std::ios::end);

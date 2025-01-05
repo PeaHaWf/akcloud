@@ -39,39 +39,12 @@ Composer::~Composer() {
 }
 //读取文件，统计每个字符数量
 std::vector<unsigned char> Composer::readAllLines() {
-    /* std::vector<std::string> clines;
-    std::string line;
-
-
-    while (std::getline(infile, line)) {
-        clines.push_back(line); // 将每一行内容添加到 vector 中
-    }
-    lines = clines;
-    for (std::string s : clines) {
-        for (char c : s) {
-            std::cout << c << ' ' << std::endl;
-            if (!charCount.count(c))
-                charCount[c] = 1;
-            else
-                charCount[c]++;
-        }
-    }
-    charCount['\n'] = clines.size() - 1;
-    return clines;*/
-
     infile.seekg(0, std::ios::end);
     std::streamsize size = infile.tellg();
     infile.seekg(0, std::ios::beg);
     std::vector<unsigned char> clines(size);
     infile.read(reinterpret_cast<char *>(clines.data()), size);
 
-    // if (!infile.eof()) {
-    //  std::cerr << "Error reading the file!" << std::endl;
-    // return {};
-    //}
-    //去掉'\0'
-    // clines.pop_back();
-    // clines.erase(std::remove(clines.begin(), clines.end(), '\r'), clines.end());
     for (unsigned char c : clines) {
         std::cout << c << ' ' << std::endl;
         if (!charCount.count(c))
@@ -136,13 +109,13 @@ void Composer::generateHuffmanCode(huffmanNode *root) {
 void Composer::composerOutput(std::string outputFileName) {
     outputFileName += ".hf";
     std::ofstream outfile(outputFileName, std::ios::binary); // 创建输出文件流
-    writeHead(outfile, outputFileName);
-    unsigned char ch = 0;
-    unsigned char bitcount = 0;
     if (!outfile) {
         std::cerr << "无法创建输出文件: " << outputFileName << std::endl;
         return;
     }
+    writeHead(outfile, outputFileName);
+    unsigned char ch = 0;
+    unsigned char bitcount = 0;
 
     for (unsigned char c : chars) {
         std::string code = strCode[c];
@@ -174,9 +147,6 @@ void Composer::writeHead(std::ostream &outfile, std::string filename) {
     if (pos != std::string::npos && pos != originFileName.length() - 1) {
         // 提取从 '.' 之后的子串（即文件后缀）
         postFix = originFileName.substr(pos + 1);
-        // std::cout << "文件后缀名是: " << extension << std::endl;
-    } else {
-        // std::cout << "未找到有效的文件后缀名" << std::endl;
     }
 
     postFix += '\n';
@@ -185,7 +155,7 @@ void Composer::writeHead(std::ostream &outfile, std::string filename) {
     outfile << postFix;
     std::string info = "";
     size_t lineCnt = 0;
-    //统计各字符出现个数，形成如A:1   B:3类似的数据，换行符特殊化处理
+    //统计各字符出现个数，形成如A:1   B:3类似的数据
     for (std::pair<unsigned char, int> p : charCount) {
         if (p.first != '\n' && p.first != '\r')
             info += p.first;
@@ -258,6 +228,10 @@ int Composer::compress_lz77() {
     int tbits = 0;
     outputFilename += ".lz";
     std::ofstream fOut(outputFilename, std::ios::binary);
+    if (!fOut.is_open()) {
+        std::cerr << "文件创建失败" << std::endl;
+        return 0;
+    }
     std::string postfix;
     size_t pos = originFileName.find_last_of('.');
     std::string postFix = "";
